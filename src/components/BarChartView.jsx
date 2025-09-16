@@ -97,7 +97,7 @@ const BarChartView = ({ db }) => {
                                             if (value) {
                                                 return `${getCurrencySymbol(chartCurrency)}${value.toFixed(2)}`;
                                             } else {
-                                                return `0`;
+                                                return `${getCurrencySymbol(chartCurrency)}0`;
                                             }
                                         },
                                         color: "#1976d2",
