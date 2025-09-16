@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <title>Test idb.js Library</title>
+   <style>
+     body { font-family: Arial, sans-serif; padding: 20px; }
+     .test-result { margin: 10px 0; padding: 10px; border-radius: 4px; }
+     .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+     .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+     .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+   </style>
+</head>
+<body>
+   <h1>IndexedDB Library Test</h1>
+   <div id="results"></div>
+   
+   <script src="idb.js"></script>
+   <script>
+     const results = document.getElementById('results');
+     
+     function addResult(message, type = 'info') {
+       const div = document.createElement('div');
+       div.className = `test-result ${type}`;
+       div.textContent = message;
+       results.appendChild(div);
+     }
+     
+     async function test() {
+       try {
+         addResult('Starting IndexedDB tests...');
+         
+         // Test 1: Open database
+         const db = await idb.openCostsDB("costsdb", 1);
+         if (db) {
+           addResult('✓ Database opened successfully', 'success');
+         }
+         
+         // Test 2: Add first cost item
+         const result1 = await db.addCost({
+           sum: 200, 
+           currency: "USD", 
+           category: "FOOD",
+           description: "pizza"
+         });
+         
+         if (result1) {
+           addResult('✓ First cost item added successfully', 'success');
+           addResult(`   Added: ${result1.description} - $${result1.sum} (${result1.category})`, 'info');
+         }
+         
+         // Test 3: Add second cost item
+         const result2 = await db.addCost({
+           sum: 400, 
+           currency: "USD", 
+           category: "CAR",
+           description: "fuel"
+         });
+         
+         if (result2) {
+           addResult('✓ Second cost item added successfully', 'success');
+           addResult(`   Added: ${result2.description} - $${result2.sum} (${result2.category})`, 'info');
+         }
+         
+         // Test 4: Get report
+         const currentDate = new Date();
+         const year = currentDate.getFullYear();
+         const month = currentDate.getMonth() + 1;
+         
+         const report = await db.getReport(year, month, "USD");
+         addResult(`✓ Report generated for ${month}/${year}`, 'success');
+         addResult(`   Found ${report.costs.length} costs, Total: $${report.total.total}`, 'info');
+         
+         // Test 5: Test currency conversion
+         const gbpResult = await db.addCost({
+           sum: 100,
+           currency: "GBP",
+           category: "SHOPPING",
+           description: "books"
+         });
+         
+         if (gbpResult) {
+           addResult('✓ GBP cost item added successfully', 'success');
+         }
+         
+         const reportUSD = await db.getReport(year, month, "USD");
+         addResult(`✓ Currency conversion test completed`, 'success');
+         addResult(`   Total in USD: $${reportUSD.total.total}`, 'info');
+         
+         addResult('All tests completed successfully!', 'success');
+         
+       } catch (error) {
+         addResult(`✗ Test failed: ${error.message}`, 'error');
+         console.error('Test error:', error);
+       }
+     }
+     
+     // Run tests when page loads
+     test();
+   </script>
+</body>
+</html>
